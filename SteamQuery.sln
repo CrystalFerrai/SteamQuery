@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamQuery", "SteamQuery\SteamQuery.csproj", "{325D18B6-A3B8-417A-A0D7-582B3A028799}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamQueryTest", "SteamQueryTest\SteamQueryTest.csproj", "{817FEF8D-5238-4A33-960C-1CDAF1336671}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{325D18B6-A3B8-417A-A0D7-582B3A028799}.Debug|x64.ActiveCfg = Debug|x64
+		{325D18B6-A3B8-417A-A0D7-582B3A028799}.Release|x64.ActiveCfg = Release|x64
+		{325D18B6-A3B8-417A-A0D7-582B3A028799}.Release|x64.Build.0 = Release|x64
+		{817FEF8D-5238-4A33-960C-1CDAF1336671}.Debug|x64.ActiveCfg = Debug|x64
+		{817FEF8D-5238-4A33-960C-1CDAF1336671}.Release|x64.ActiveCfg = Release|x64
+		{817FEF8D-5238-4A33-960C-1CDAF1336671}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FE6132F3-1CFA-44A4-B5E0-0A30DBE06956}
+	EndGlobalSection
+EndGlobal
