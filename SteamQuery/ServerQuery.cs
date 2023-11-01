@@ -228,7 +228,6 @@ namespace SteamQuery
         private void SendCallback(IAsyncResult result)
         {
             ResponseAggregator response = (ResponseAggregator)result.AsyncState;
-            response.ResponseTimer.Stop();
 
             lock (response.Client)
             {
@@ -270,8 +269,9 @@ namespace SteamQuery
         private void ReceiveCallback(IAsyncResult result)
         {
             ResponseAggregator response = (ResponseAggregator)result.AsyncState;
+			response.ResponseTimer.Stop();
 
-            lock (response.Client)
+			lock (response.Client)
             {
                 // NOTE: If the query timed out, we will get called because the client receive was canceled by the timeout handler.
                 if (response.Client.Client == null)
