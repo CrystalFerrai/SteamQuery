@@ -197,7 +197,16 @@ namespace SteamQuery
                 }
 
                 IPEndPoint endPoint = QueryAddress.EndPoint;
-                byte[] responseData = response.Client.EndReceive(result, ref endPoint);
+                byte[] responseData;
+                try
+				{
+					responseData = response.Client.EndReceive(result, ref endPoint);
+				}
+                catch (SocketException)
+                {
+                    // Most likely connection terminated
+                    return;
+                }
 
                 if (responseData.Length != 9 || responseData[4] != 0x41)
                 {
@@ -280,10 +289,19 @@ namespace SteamQuery
                     return;
                 }
 
-                IPEndPoint endPoint = QueryAddress.EndPoint;
-                byte[] responseData = response.Client.EndReceive(result, ref endPoint);
+				IPEndPoint endPoint = QueryAddress.EndPoint;
+				byte[] responseData;
+				try
+				{
+					responseData = response.Client.EndReceive(result, ref endPoint);
+				}
+				catch (SocketException)
+				{
+					// Most likely connection terminated
+					return;
+				}
 
-                if (mChallengeRequired && responseData.Length == 9 && responseData[4] == 0x41)
+				if (mChallengeRequired && responseData.Length == 9 && responseData[4] == 0x41)
                 {
                     // Got a new challenge ID. This is unusual and seems to only happen on heavily loaded servers.
                     // We will try sending the query again with the new ID.
