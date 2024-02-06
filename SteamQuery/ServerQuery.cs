@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Timers;
 
@@ -80,17 +81,16 @@ namespace SteamQuery
         /// </summary>
         /// <returns>A handle to the query that can be used to identify the response</returns>
         public ServerQueryHandle Send()
-        {
-            UdpClient client = new UdpClient();
-            client.Connect(QueryAddress.EndPoint);
-            return InternalSend(client);
-        }
+		{
+			UdpClient client = new();
+			client.Client.Bind(new IPEndPoint(GetBindAddress(), 0));
+			return InternalSend(client);
+		}
 
-
-        /// <summary>
-        /// Returns the byte that identifyies the type of this query to the server
-        /// </summary>
-        protected abstract byte GetQueryHeader();
+		/// <summary>
+		/// Returns the byte that identifyies the type of this query to the server
+		/// </summary>
+		protected abstract byte GetQueryHeader();
 
         /// <summary>
         /// Returns the data to use as the packet content when sending this query
@@ -142,7 +142,7 @@ namespace SteamQuery
                     0xff, 0xff, 0xff, 0xff
                 };
 
-                client.BeginSend(datagram, datagram.Length, ChallengeRequestCallback, response);
+                client.BeginSend(datagram, datagram.Length, QueryAddress.EndPoint, ChallengeRequestCallback, response);
             }
             else
             {
@@ -154,7 +154,7 @@ namespace SteamQuery
                 queryData.CopyTo(datagram, 5);
 
                 response.ResponseTimer.Start();
-                client.BeginSend(datagram, datagram.Length, SendCallback, response);
+                client.BeginSend(datagram, datagram.Length, QueryAddress.EndPoint, SendCallback, response);
             }
 
             return queryHandle;
@@ -218,7 +218,7 @@ namespace SteamQuery
                 }
 
                 response.ResponseTimer.Start();
-                response.Client.BeginSend(responseData, responseData.Length, SendCallback, response);
+                response.Client.BeginSend(responseData, responseData.Length, QueryAddress.EndPoint, SendCallback, response);
             }
         }
 
@@ -289,7 +289,7 @@ namespace SteamQuery
                     // We will try sending the query again with the new ID.
                     responseData[4] = GetQueryHeader();
                     response.ResponseTimer.Restart();
-                    response.Client.BeginSend(responseData, responseData.Length, SendCallback, response);
+                    response.Client.BeginSend(responseData, responseData.Length, QueryAddress.EndPoint, SendCallback, response);
                     return;
                 }
 
@@ -385,9 +385,33 @@ namespace SteamQuery
         }
 
         /// <summary>
-        /// Utility for handling multi-packet query responses
+        /// Returns the IP address to bind the client to
         /// </summary>
-        private class ResponseAggregator
+		private static IPAddress GetBindAddress()
+		{
+			IPAddress bindAddress = IPAddress.Any;
+			var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+				.Where(i => i.OperationalStatus == OperationalStatus.Up && i.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+			foreach (NetworkInterface ni in interfaces)
+			{
+				IPInterfaceProperties props = ni.GetIPProperties();
+				if (props.GatewayAddresses.Select(g => g.Address).Any(a => a.AddressFamily == AddressFamily.InterNetwork))
+				{
+					IPAddress addr = props.UnicastAddresses.Select(u => u.Address).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
+					if (addr != null)
+					{
+						bindAddress = addr;
+					}
+				}
+			}
+
+			return bindAddress;
+		}
+
+		/// <summary>
+		/// Utility for handling multi-packet query responses
+		/// </summary>
+		private class ResponseAggregator
         {
             public UdpClient Client { get; }
 
