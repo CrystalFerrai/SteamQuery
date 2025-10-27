@@ -41,12 +41,15 @@ namespace SteamQueryTest
                 Console.Error.WriteLine("{0} could not be parsed as a valid end point address", args[0]);
             }
 
-            PerformQuery<ServerInfoQuery, ServerInfoData>("Info Query", new ServerInfoQuery(server));
-            PerformQuery<ServerRulesQuery, ServerRulesData>("Rules Query", new ServerRulesQuery(server));
-            PerformQuery<ServerPlayersQuery, ServerPlayersData>("Players Query", new ServerPlayersQuery(server));
+            PerformQuery<ServerInfoQuery, ServerInfoData>("Info Query", new ServerInfoQuery(server, 5000.0));
+            PerformQuery<ServerRulesQuery, ServerRulesData>("Rules Query", new ServerRulesQuery(server, 5000.0));
+            PerformQuery<ServerPlayersQuery, ServerPlayersData>("Players Query", new ServerPlayersQuery(server, 5000.0));
 
-            Console.Out.WriteLine("Press any key to exit...");
-            Console.ReadKey();
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                Console.Out.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+            }
 
             return 0;
         }
@@ -81,7 +84,6 @@ namespace SteamQueryTest
             switch (response.Result)
             {
                 case ServerQueryResult.QueryTimedOut:
-                    responseOutput.AppendLine("Query timed out.");
                     break;
                 case ServerQueryResult.UnknownResponseReceived:
                     responseOutput.AppendLine("Query returned an unrecognized response.");

@@ -37,7 +37,7 @@ namespace SteamQuery
         protected const double DefaultQueryTimeout = 15000.0;
 
         /// <summary>
-        /// Whether a challange id needs to be requested fromt he server for this query
+        /// Whether a challange id needs to be requested from the server for this query
         /// </summary>
         private readonly bool mChallengeRequired;
         
