@@ -16,6 +16,7 @@ using SteamQuery;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -38,7 +39,39 @@ namespace SteamQueryTest
             EndPointAddress server;
             if (!EndPointAddress.TryParse(args[0], out server))
             {
-                Console.Error.WriteLine("{0} could not be parsed as a valid end point address", args[0]);
+                // TODO: Add DNS support to the library instead of doing a lookup here
+                try
+                {
+                    string[] parts = args[0].Split(':');
+
+                    IPHostEntry hostEntry = Dns.GetHostEntry(parts[0]);
+                    IPAddress address = hostEntry.AddressList.FirstOrDefault(a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+                    if (address is null)
+					{
+						Console.Error.WriteLine("Could not find an IPv4 address for {0}", parts[0]);
+						return 1;
+					}
+
+                    if (parts.Length > 1)
+                    {
+                        int port;
+                        if (!int.TryParse(parts[1], out port))
+                        {
+                            Console.Error.WriteLine("{0} could not be parsed as a valid end point address", args[0]);
+                            return 1;
+                        }
+                        server = EndPointAddress.Create(address, port);
+                    }
+                    else
+                    {
+                        server = EndPointAddress.Create(address);
+                    }
+                }
+                catch
+				{
+					Console.Error.WriteLine("{0} could not be parsed as a valid end point address", args[0]);
+					return 1;
+				}
             }
 
             PerformQuery<ServerInfoQuery, ServerInfoData>("Info Query", new ServerInfoQuery(server, 5000.0));

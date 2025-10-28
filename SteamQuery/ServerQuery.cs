@@ -83,7 +83,7 @@ namespace SteamQuery
         public ServerQueryHandle Send()
 		{
 			UdpClient client = new();
-			client.Client.Bind(new IPEndPoint(GetBindAddress(), 0));
+			client.Client.Bind(new IPEndPoint(GetBindAddress(IPAddress.IsLoopback(QueryAddress.Ip)), 0));
 			return InternalSend(client);
 		}
 
@@ -405,20 +405,26 @@ namespace SteamQuery
         /// <summary>
         /// Returns the IP address to bind the client to
         /// </summary>
-		private static IPAddress GetBindAddress()
+		private static IPAddress GetBindAddress(bool loopback)
 		{
 			IPAddress bindAddress = IPAddress.Any;
 			var interfaces = NetworkInterface.GetAllNetworkInterfaces()
-				.Where(i => i.OperationalStatus == OperationalStatus.Up && i.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+				.Where(i => i.OperationalStatus == OperationalStatus.Up);
 			foreach (NetworkInterface ni in interfaces)
 			{
+				if ((ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) ^ loopback)
+				{
+                    continue;
+				}
+
 				IPInterfaceProperties props = ni.GetIPProperties();
-				if (props.GatewayAddresses.Select(g => g.Address).Any(a => a.AddressFamily == AddressFamily.InterNetwork))
+				if (loopback || props.GatewayAddresses.Select(g => g.Address).Any(a => a.AddressFamily == AddressFamily.InterNetwork))
 				{
 					IPAddress addr = props.UnicastAddresses.Select(u => u.Address).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
 					if (addr != null)
 					{
 						bindAddress = addr;
+                        break;
 					}
 				}
 			}
